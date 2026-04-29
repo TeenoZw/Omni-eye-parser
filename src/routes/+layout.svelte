@@ -9,10 +9,10 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
-	<title>Omni Eye v2.0 - Advanced GPS Trip Playback</title>
+	<title>Omni Eye - Fleet Telemetry Workspace</title>
 	<meta
 		name="description"
-		content="Modern GPS trip playback interface with real-time animation, speedometer, and advanced filtering"
+		content="Fleet telemetry workspace for live visibility, trip playback, alerts, and operational context"
 	/>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<link
@@ -21,6 +21,6 @@
 	/>
 </svelte:head>
 
-<div class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900">
+<div class="min-h-screen bg-[#06101b]">
 	{@render children?.()}
 </div>
