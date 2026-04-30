@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import {
 		CircleLayer,
 		GeoJSONSource,
@@ -34,6 +35,10 @@
 		followPlayback,
 		snapToRoads,
 		snapping,
+		leftOverlay,
+		rightOverlay,
+		leftOverlayWidthClass = 'w-[340px]',
+		rightOverlayWidthClass = 'w-[320px]',
 		onMapDragStart,
 		onRecenter,
 		onToggleFollow,
@@ -63,6 +68,10 @@
 		followPlayback: boolean;
 		snapToRoads: boolean;
 		snapping: boolean;
+		leftOverlay?: Snippet;
+		rightOverlay?: Snippet;
+		leftOverlayWidthClass?: string;
+		rightOverlayWidthClass?: string;
 		onMapDragStart: () => void;
 		onRecenter: () => void;
 		onToggleFollow: () => void;
@@ -109,7 +118,7 @@
 		</div>
 	</div>
 
-	<div class="relative h-[66vh] min-h-[520px]">
+	<div class="relative h-[76vh] min-h-[620px]">
 		<MapLibre
 			center={mapCenter}
 			zoom={13}
@@ -257,5 +266,29 @@
 			{onSeek}
 			{onSpeedChange}
 		/>
+
+		{#if leftOverlay}
+			<div
+				class={`pointer-events-none absolute inset-y-4 left-4 hidden xl:block ${leftOverlayWidthClass}`}
+			>
+				<div
+					class="pointer-events-auto h-full overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950/82 backdrop-blur"
+				>
+					{@render leftOverlay()}
+				</div>
+			</div>
+		{/if}
+
+		{#if rightOverlay}
+			<div
+				class={`pointer-events-none absolute inset-y-4 right-4 hidden xl:block ${rightOverlayWidthClass}`}
+			>
+				<div
+					class="pointer-events-auto h-full overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950/82 backdrop-blur"
+				>
+					{@render rightOverlay()}
+				</div>
+			</div>
+		{/if}
 	</div>
 </section>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import DashboardOverview from '$lib/components/dashboard/DashboardOverview.svelte';
+	import AnalyticsPage from '$lib/components/analytics/AnalyticsPage.svelte';
 	import type { FleetWorkspaceData } from '$lib/types/telemetry';
 
 	let {
@@ -9,4 +9,4 @@
 	} = $props();
 </script>
 
-<DashboardOverview workspace={data.workspace} />
+<AnalyticsPage workspace={data.workspace} />

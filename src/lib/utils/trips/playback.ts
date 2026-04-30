@@ -163,3 +163,87 @@ export function buildCombinedTrip(trips: TripSummary[], assetId: string): TripSu
 		is_combined: true
 	};
 }
+
+function haversineKm(a: TelemetryPoint, b: TelemetryPoint) {
+	const toRad = (value: number) => (value * Math.PI) / 180;
+	const earthRadiusKm = 6371;
+	const dLat = toRad(b.lat - a.lat);
+	const dLon = toRad(b.lon - a.lon);
+	const lat1 = toRad(a.lat);
+	const lat2 = toRad(b.lat);
+	const sinLat = Math.sin(dLat / 2);
+	const sinLon = Math.sin(dLon / 2);
+	const root = sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * sinLon * sinLon;
+	return 2 * earthRadiusKm * Math.asin(Math.sqrt(root));
+}
+
+export function buildPlaybackWindowTrip(
+	points: TelemetryPoint[],
+	assetId: string,
+	name: string,
+	startLabel = 'Window start',
+	endLabel = 'Window end'
+): TripSummary | null {
+	const validPoints = points
+		.filter((point) => Number.isFinite(point.lon) && Number.isFinite(point.lat))
+		.sort((a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
+
+	if (validPoints.length < 2) return null;
+
+	const startPoint = validPoints[0];
+	const endPoint = validPoints[validPoints.length - 1];
+	let distanceKm = 0;
+	let movingSeconds = 0;
+	let stoppedSeconds = 0;
+	let weightedSpeed = 0;
+	let weightedMovingSeconds = 0;
+	let maxSpeed = 0;
+
+	for (let index = 0; index < validPoints.length; index += 1) {
+		const point = validPoints[index];
+		const speed = Number.isFinite(point.speed_kmh) ? point.speed_kmh : 0;
+		maxSpeed = Math.max(maxSpeed, speed);
+
+		if (index === 0) continue;
+
+		const previous = validPoints[index - 1];
+		distanceKm += haversineKm(previous, point);
+
+		const durationSeconds = Math.max(
+			0,
+			(new Date(point.ts).getTime() - new Date(previous.ts).getTime()) / 1000
+		);
+		if (speed > 1) {
+			movingSeconds += durationSeconds;
+			weightedMovingSeconds += durationSeconds;
+			weightedSpeed += speed * durationSeconds;
+		} else {
+			stoppedSeconds += durationSeconds;
+		}
+	}
+
+	return {
+		id: `window_${assetId}_${startPoint.ts}_${endPoint.ts}`,
+		asset_id: assetId,
+		name,
+		start_time: startPoint.ts,
+		end_time: endPoint.ts,
+		start_lat: startPoint.lat,
+		start_lon: startPoint.lon,
+		end_lat: endPoint.lat,
+		end_lon: endPoint.lon,
+		moving_seconds: Math.round(movingSeconds),
+		stopped_seconds: Math.round(stoppedSeconds),
+		distance_km: Number(distanceKm.toFixed(1)),
+		max_speed_kmh: Number(maxSpeed.toFixed(1)),
+		avg_moving_speed_kmh:
+			weightedMovingSeconds > 0 ? Number((weightedSpeed / weightedMovingSeconds).toFixed(1)) : 0,
+		start_label: startLabel,
+		end_label: endLabel,
+		status: 'replayable',
+		points: validPoints,
+		stop_count: 0,
+		overspeed_event_count: validPoints.filter((point) => (point.speed_kmh ?? 0) > 80).length,
+		algorithm_version: 'window-v1'
+	};
+}

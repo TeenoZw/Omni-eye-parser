@@ -1,26 +1,31 @@
-<script>
+<script lang="ts">
 	import '../app.css';
 	import 'maplibre-gl/dist/maplibre-gl.css';
 
+	import { page } from '$app/state';
+	import PlatformShell from '$lib/components/shell/PlatformShell.svelte';
 	import favicon from '$lib/assets/favicon.svg';
+	import type { FleetWorkspaceData } from '$lib/types/telemetry';
 
-	let { children } = $props();
+	let {
+		children,
+		data
+	}: {
+		children: import('svelte').Snippet;
+		data: { workspace: FleetWorkspaceData };
+	} = $props();
 </script>
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
-	<title>Omni Eye - Fleet Telemetry Workspace</title>
+	<title>Omni Eye - Fleet Platform</title>
 	<meta
 		name="description"
-		content="Fleet telemetry workspace for live visibility, trip playback, alerts, and operational context"
+		content="Omni Eye fleet platform shell for live tracking, playback, assets, alerts, reports, and analytics"
 	/>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<link
-		rel="stylesheet"
-		href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-	/>
 </svelte:head>
 
-<div class="min-h-screen bg-[#06101b]">
+<PlatformShell workspace={data.workspace} summary={data.workspace.summary} pathname={page.url.pathname}>
 	{@render children?.()}
-</div>
+</PlatformShell>
